@@ -25,8 +25,8 @@ def download_image(product_name,my_url, file_location,img_index):
         img_file.write(img_bytes)
         # print(f'{} was downloaded...')
 
-my_url = 'https://www.flipkart.com/search?q=blenders&otracker=search&otracker1=search&marketplace=FLIPKART&as-show=on&as=off&as-pos=1&as-type=HISTORY'
-single_page_url = "https://www.flipkart.com/handy-trendy-7-speed-beater-180-w-stand-mixer-electric-whisk/p/itm9430c8957245f?pid=HBLFG5SQQDT7J7KU&lid=LSTHBLFG5SQQDT7J7KUDOATHI&marketplace=FLIPKART&srno=s_1_1&otracker=search&otracker1=search&fm=SEARCH&iid=fc47e5d3-8db1-41ff-b5ba-a54a1c61143d.HBLFG5SQQDT7J7KU.SEARCH&ppt=sp&ppn=sp&ssid=9d1gq2sdio0000001594268602419&qH=7c7cec5ba22a5060"
+my_url = 'https://www.flipkart.com/search?q=Cooker&otracker=search&otracker1=search&marketplace=FLIPKART&as-show=on&as=offas-pos=1&as-type=HISTORY'
+single_page_url = "https://www.flipkart.com/greenchef-tadka-pan-10-cm-high-quality-diameter/p/itm95b795f6f093c?pid=PTPFT7EF2HHW6DQH&lid=LSTPTPFT7EF2HHW6DQHWJBXT2&marketplace=FLIPKART&srno=s_1_1&otracker=search&otracker1=search&fm=organic&iid=fd0f7b1e-e819-4722-becd-b182410a41c1.PTPFT7EF2HHW6DQH.SEARCH&ppt=sp&ppn=sp&ssid=uouw8ygo6o0000001595754895204&qH=d338d8fe084054a6"
 
 
 def get_product_urls(search_url):
@@ -39,8 +39,9 @@ def get_product_urls(search_url):
     driver.get(search_url)
 
     while(True):
+        sleep(4)
         containers = driver.find_elements_by_xpath("(//div[@class='_1HmYoV _35HD7C'])[2]//div[@class='_3liAhj']//a[@class='Zhf2z-']")
-
+            
         for container in containers:
             download_all_images(container.get_attribute('href'))
 
@@ -71,32 +72,40 @@ def download_all_images(url):
     image_class = "_1Nyybr"
     product_name_container = "_9E25nV"
     
-
-    product_name = driver.find_element_by_xpath("//h1[@class='{}']".format(product_name_container)).get_attribute("innerText")
-    product_name = "".join([c for c in product_name if c.isalpha() or c.isdigit() or c==' ']).rstrip()
-    print(product_name)
-
+    try:
+        product_name = driver.find_element_by_xpath("//h1[@class='{}']".format(product_name_container)).get_attribute("innerText")
+        product_name = "".join([c for c in product_name if c.isalpha() or c.isdigit() or c==' ']).rstrip()
+        print(product_name)
+    except:
+        print("Page not loaded properly, Skipping...")
+        return
     try:
         img_line_driver = driver.find_element_by_xpath("//ul[@class='{}']".format(img_list_class))
         thumbnails = img_line_driver.find_elements_by_xpath("//li[@class='{}']".format(li_class))
-        print(len(thumbnails))
+        # print(len(thumbnails))
     except NoSuchElementException: 
         image_tag = driver.find_element_by_xpath("//img[contains(@class,'{}')]".format(image_class))
         image_url = image_tag.get_attribute('srcset').split(" ")[0]
-        print(image_url)
+        # print(image_url)
+        
         download_image(product_name,image_url,os.path.join(os.getcwd(),'images'),1)
         driver.quit()
+    
         return None
 
         
     for i,thumbnail in enumerate(thumbnails):
         hover = ActionChains(driver).move_to_element(thumbnail)
         hover.perform()
-        image_tag = driver.find_element_by_xpath("//img[contains(@class,'{}')]".format(image_class))
-        image_url = image_tag.get_attribute('srcset').split(" ")[0]
-        print(image_url)
-        download_image(product_name,image_url,os.path.join(os.getcwd(),'images'),i)
-        sleep(0.1)
+        try:
+            image_tag = driver.find_element_by_xpath("//img[contains(@class,'{}')]".format(image_class))
+            image_url = image_tag.get_attribute('srcset').split(" ")[0]
+            # print(image_url)
+            download_image(product_name,image_url,os.path.join(os.getcwd(),'images'),i)
+            sleep(0.1)
+        except:
+            print("Thumbnail was not of an image")
+
         #next btn for next page
     
     
